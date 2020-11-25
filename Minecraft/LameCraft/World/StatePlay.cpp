@@ -84,7 +84,7 @@ StatePlay::StatePlay()
 
     barPosition = 0;
     invXPosition = 0;
-    invYPosition = 0;
+    invYPosition = 3;
 
     craftItemId = -1;
     craftItemAm = -1;
@@ -497,23 +497,27 @@ void StatePlay::LoadTextures()
 	moverSprite = new Sprite(g_TextureData.buttons,0,60,6,12);
 	moverSprite->Scale(2,2);
 
-    // inventory section
+    // GUI/CONTAINERS
 
+    // MotoLegacy - FIXME - eliminate these
     int invGuiSize = g_TextureData.inv->width;
-    float invGuiScale = 352.0f/(float)invGuiSize;
+    float invGuiScale = (352.0f/(float)invGuiSize)/2;
 
+    // Survival Inventory
     invSprite = new Sprite((g_TextureData.inv));//200
-    invSprite->SetPosition(240,136);
-    invSprite->Scale(invGuiScale,invGuiScale);
+    invSprite->SetPosition(240, 136);
 
+    // Crafting Table(?)
     crtSprite = new Sprite((g_TextureData.crt));//200
     crtSprite->SetPosition(240,136);
     crtSprite->Scale(invGuiScale,invGuiScale);
 
+    // Chest
     chtSprite = new Sprite((g_TextureData.cht));//200
     chtSprite->SetPosition(240,136);
     chtSprite->Scale(invGuiScale,invGuiScale);
 
+    // Furnace
     furSprite = new Sprite((g_TextureData.fur));//200
     furSprite->SetPosition(240,136);
     furSprite->Scale(invGuiScale,invGuiScale);
@@ -538,12 +542,16 @@ void StatePlay::LoadTextures()
         furFireSprite[13-j]->Scale(invFireScale,invFireScale);
     }
 
-    selectInvSprite = new Sprite((g_TextureData.cursor));//200
-    selectInvSprite->SetPosition(96,138);
+    // Cursor
+    // Coordinate info:
+    // Inventory slots 10-36 start at 168, 181, add 18 to X to go right and subtract 18 from Y to go up..
+    // Slots 1-9 start at 168, 203. Subtract 22 to Y to go from 1-9 to 10-36.
+    selectInvSprite = new Sprite((g_TextureData.cursor));
+    selectInvSprite->SetPosition(168, 203);
 
+    // Cursor BG (transparent square.. why is this a sprite? FIXME)
     invCellSprite = new Sprite((g_TextureData.invCell));//200
     invCellSprite->SetPosition(240,136);
-    invCellSprite->Scale(2,2);
 
     skyLight = new SkyLight();
     skyMoonLight = new SkyLight();
@@ -7367,7 +7375,7 @@ void StatePlay::HandleEvents(StateManager* sManager)
                     if(upEn == true)
                     {
                         invXPosition = 0;
-                        invYPosition = 0;
+                        invYPosition = 3;
                     }
                     selectInvSprite->SetPosition(96+(invXPosition * 36),138+(invYPosition * 36));
 
@@ -7527,21 +7535,36 @@ void StatePlay::HandleEvents(StateManager* sManager)
                         }
                     }
                 }
-
-                //switch right
+                // Move Cursor to the Right in Containers
                 if(keyPressed(g_InputHelper.getButtonToAction(9)))
                 {
-                    if (upEn == 0) // if your mouse in neither of craft menus
+                    if (upEn == 0)
                     {
-                        if(armorEn == true)
+                        // Armor
+                        if (armorEn == true)
                         {
                             invXPosition != 1 ? invXPosition ++ : invXPosition = 1;
                             selectInvSprite->SetPosition(96+(invXPosition * 108),26+(invYPosition * 72));
                         }
+                        // Standard Inventory
                         else
                         {
-                            invXPosition != 8 ? invXPosition ++ : invXPosition = 8;
-                            selectInvSprite->SetPosition(96+(invXPosition * 36),138+(invYPosition * 36));
+                            // Increase X Value
+                            invXPosition++;
+                            if (invXPosition >= 9) {
+                                invXPosition = 0;
+                            }
+
+                            // Slots 1-9 are lower on the Y axis
+                            int InvYOffset;
+                            if (invYPosition == 3) {
+                                InvYOffset = 22;
+                            } else {
+                                InvYOffset = 18;
+                            }
+                            
+                            // Set Cursor Position
+                            selectInvSprite->SetPosition(168 + (invXPosition * 18), 127 + (invYPosition * InvYOffset));
                         }
                     }
                     else
@@ -7549,7 +7572,7 @@ void StatePlay::HandleEvents(StateManager* sManager)
                         if(invEn == 1)
                         {
                             invXPosition != 1 ? invXPosition ++ : invXPosition = 1;
-                            selectInvSprite->SetPosition(276 + (invXPosition * 36),46+(invYPosition * 36));
+                            selectInvSprite->SetPosition(276 + (invXPosition * 18), 46 + (invYPosition * 18));
                         }
                         if(craft3xEn == 1)
                         {
@@ -7563,19 +7586,35 @@ void StatePlay::HandleEvents(StateManager* sManager)
                         }
                     }
                 }
-
-                //switch left
+                // Move Cursor to the Left in Containers
                 if(keyPressed(g_InputHelper.getButtonToAction(8)))
                 {
-                    if (upEn == 0) // not only craft but chest too
+                    if (upEn == 0)
                     {
-                        invXPosition != 0 ? invXPosition -- : invXPosition = 0;
-
-                        selectInvSprite->SetPosition(96+(invXPosition * 36),138+(invYPosition * 36));
-
-                        if(armorEn == true)
+                        // Armor
+                        if (armorEn == true)
                         {
-                            selectInvSprite->SetPosition(96+(invXPosition * 108),26+(invYPosition * 72));
+                            return;
+                        }
+                        // Standard Inventory
+                        else
+                        {
+                            // Decrease X Value
+                            invXPosition--;
+                            if (invXPosition < 0) {
+                                invXPosition = 8;
+                            }
+
+                            // Slots 1-9 are lower on the Y axis
+                            int InvYOffset;
+                            if (invYPosition == 3) {
+                                InvYOffset = 22;
+                            } else {
+                                InvYOffset = 18;
+                            }
+                            
+                            // Set Cursor Position
+                            selectInvSprite->SetPosition(168 + (invXPosition * 18), 127 + (invYPosition * InvYOffset));
                         }
                     }
                     else
@@ -7595,33 +7634,35 @@ void StatePlay::HandleEvents(StateManager* sManager)
                         }
                     }
                 }
-
-                //switch down
+                // Move Cursor Down in Containers
                 if(keyPressed(g_InputHelper.getButtonToAction(11)))
                 {
                     if (upEn == 0)
                     {
+                        // Armor
                         if(armorEn == true)
                         {
-                            invYPosition ++;
-                            selectInvSprite->SetPosition(96+(invXPosition * 108),26+(invYPosition * 72));
-
-                            if(invYPosition == 2)
-                            {
-                                if(invXPosition == 1)
-                                {
-                                    invXPosition = 3;
-                                }
-                                invYPosition = 0;
-                                armorEn = false;
-
-                                selectInvSprite->SetPosition(96+(invXPosition * 36),138+(invYPosition * 36));
-                            }
+                            return;
                         }
+                        // Standard Inventory
                         else
                         {
-                            invYPosition != 3 ? invYPosition ++ : invYPosition = 3;
-                            selectInvSprite->SetPosition(96+(invXPosition * 36),138+(invYPosition * 36));
+                            // Increase Y Value
+                            invYPosition++;
+                            if (invYPosition >= 4) {
+                                invYPosition = 0;
+                            }
+
+                            // Slots 1-9 are lower on the Y axis
+                            int InvYOffset;
+                            if (invYPosition == 3) {
+                                InvYOffset = 22;
+                            } else {
+                                InvYOffset = 18;
+                            }
+                            
+                            // Set Cursor Position
+                            selectInvSprite->SetPosition(168 + (invXPosition * 18), 127 + (invYPosition * InvYOffset));
                         }
                     }
                     else
@@ -7682,67 +7723,35 @@ void StatePlay::HandleEvents(StateManager* sManager)
                         }
                     }
                 }
-
-                //switch up
+                // Move Cursor Up in Containers
                 if(keyPressed(g_InputHelper.getButtonToAction(10)))
                 {
                     if (upEn == 0)
                     {
-                        if (invYPosition == 0)
-                        {
-                            if(invEn == 1)
-                            {
-                                if((invXPosition == 5 || invXPosition == 6) && armorEn == false)
-                                {
-                                    invXPosition -= 5;
-                                    invYPosition = 1;
-                                    selectInvSprite->SetPosition(276 + (invXPosition * 36),46+(invYPosition * 36));
-                                    upEn = true;
-                                }
-                                if((invXPosition == 0 || invXPosition == 3) && armorEn == false && upEn == false)
-                                {
-                                    if(invXPosition == 3)
-                                    {
-                                        invXPosition = 1;
-                                    }
-                                    invYPosition = 1;
-                                    selectInvSprite->SetPosition(96 + (invXPosition * 108),26+(invYPosition * 72));
-                                    armorEn = true;
-                                }
-                            }
-                            if(craft3xEn == 1)
-                            {
-                                if(invXPosition >= 3 && invXPosition <= 5)
-                                {
-                                    invXPosition -= 3;
-                                    invYPosition = 2;
-                                    selectInvSprite->SetPosition(204 + (invXPosition * 36),26+(invYPosition * 36));
-                                    upEn = 1;
-                                }
-                            }
-                            if(chestEn == 1)
-                            {
-                                invYPosition = 2;
-                                selectInvSprite->SetPosition(96 + (invXPosition * 36),26+(invYPosition * 36));
-                                upEn = 1;
-                            }
-                            if(furnaceEn == 1)
-                            {
-                                if(invXPosition == 3)
-                                {
-                                    invYPosition = 1;
-                                    selectInvSprite->SetPosition(204,26+(invYPosition * 72));
-                                    upEn = 1;
-                                }
-                            }
-                            return;
-                        }
-                        invYPosition != 0 ? invYPosition -- : invYPosition = 0;
-                        selectInvSprite->SetPosition(96+(invXPosition * 36),138+(invYPosition * 36));
-
+                        // Armor
                         if(armorEn == true)
                         {
-                            selectInvSprite->SetPosition(96 + (invXPosition * 108),26+(invYPosition * 72));
+                            return;
+                        }
+                        // Standard Inventory
+                        else
+                        {
+                            // Decrease Y Value
+                            invYPosition--;
+                            if (invYPosition < 0) {
+                                invYPosition = 3;
+                            }
+
+                            // Slots 1-9 are lower on the Y axis
+                            int InvYOffset;
+                            if (invYPosition == 3) {
+                                InvYOffset = 32;
+                            } else {
+                                InvYOffset = 18;
+                            }
+                            
+                            // Set Cursor Position
+                            selectInvSprite->SetPosition(168 + (invXPosition * 18), 127 + (invYPosition * InvYOffset));
                         }
                     }
                     else

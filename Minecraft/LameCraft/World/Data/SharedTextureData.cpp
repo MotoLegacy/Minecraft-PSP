@@ -31,7 +31,7 @@ void SharedTextureData::Init()
 	
 	PumpkinMask = TextureUtil::LoadPngTexturePack(texturePackName, "hud/pumpkinblur.png");
 	clouds1 = TextureUtil::LoadPngTexturePack(texturePackName, "environment/clouds.png");
-	inv = TextureUtil::LoadPngTexturePack(texturePackName, "gui/inventory1.png");
+	inv = TextureUtil::LoadPngTexturePack(texturePackName, "gui/container/inventory.png");
 	invCreative = TextureUtil::LoadPngTexturePack(texturePackName, "gui/inventory_creative.png");
 	crt = TextureUtil::LoadPngTexturePack(texturePackName, "gui/crafting_table.png");
 	cht = TextureUtil::LoadPngTexturePack(texturePackName, "gui/chest.png");
